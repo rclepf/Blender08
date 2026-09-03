@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Renderização 3D · UC Elementos Multimídia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: #1b1b1e; --bg-raised: #232327; --bg-panel: #29292e; --line: #3a3a40;
+  --text: #ecebe7; --text-dim: #a3a2a8; --text-faint: #6b6a70;
+  --accent: #ef7d22; --accent-dim: #b45a17;
+  --axis-x: #e5484d; --axis-y: #4c9f4c; --axis-z: #3b82c4;
+  --radius: 6px;
+  --display: 'Space Grotesk', sans-serif; --body: 'Inter', sans-serif; --mono: 'JetBrains Mono', monospace;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;} }
+body{margin:0; background:var(--bg); color:var(--text); font-family:var(--body); line-height:1.6; font-size:16px;}
+a{color:var(--accent);}
+a:focus-visible, button:focus-visible{outline:2px solid var(--accent); outline-offset:3px;}
+.grid-bg{position:fixed; inset:0; z-index:-1; background-image:linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size:64px 64px; opacity:0.18; mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 90%);}
+.topbar{position:sticky; top:0; z-index:50; display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:0.9rem 1.75rem; background:rgba(27,27,30,0.88); backdrop-filter: blur(10px); border-bottom:1px solid var(--line); flex-wrap:wrap;}
+.topbar .brand{font-family:var(--display); font-weight:600; font-size:0.95rem; letter-spacing:0.01em; color:var(--text); display:flex; align-items:center; gap:0.6rem; text-decoration:none;}
+.topbar .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent); box-shadow:0 0 10px var(--accent); flex-shrink:0;}
+.topbar .eyebrow{color:var(--text-faint); font-size:0.78rem; font-family:var(--mono);}
+.topnav{display:flex; gap:1.35rem; flex-wrap:wrap;}
+.topnav a{color:var(--text-dim); text-decoration:none; font-size:0.85rem; font-family:var(--mono); transition:color 0.15s;}
+.topnav a:hover{color:var(--accent);}
+.wrap{max-width:920px; margin:0 auto; padding:0 1.75rem;}
+.hero{padding:5.5rem 0 4rem; position:relative;}
+.hero .kicker{font-family:var(--mono); color:var(--accent); font-size:0.85rem; letter-spacing:0.06em; text-transform:uppercase; display:flex; align-items:center; gap:0.6rem; margin-bottom:1.4rem;}
+.hero .kicker::before{content:""; width:28px; height:1px; background:var(--accent);}
+.hero h1{font-family:var(--display); font-size:clamp(2.1rem, 5vw, 3.4rem); line-height:1.08; font-weight:700; margin:0 0 1.3rem; max-width:16ch;}
+.hero h1 em{font-style:normal; color:var(--accent);}
+.hero p.lead{font-size:1.12rem; color:var(--text-dim); max-width:58ch; margin:0 0 2.2rem;}
+.hero-meta{display:flex; gap:2.2rem; flex-wrap:wrap; border-top:1px solid var(--line); padding-top:1.4rem; margin-top:1rem;}
+.hero-meta .item{font-size:0.82rem; color:var(--text-faint); font-family:var(--mono);}
+.hero-meta .item strong{display:block; color:var(--text); font-family:var(--body); font-size:0.95rem; font-weight:600; margin-top:0.15rem;}
+section{padding:4.2rem 0; border-top:1px solid var(--line);}
+.sec-head{display:flex; align-items:baseline; gap:1rem; margin-bottom:1.8rem; flex-wrap:wrap;}
+.sec-num{font-family:var(--mono); color:var(--accent); font-size:0.95rem; flex-shrink:0;}
+.sec-head h2{font-family:var(--display); font-size:1.7rem; margin:0; font-weight:600;}
+.sec-sub{color:var(--text-dim); font-size:0.9rem; margin:-1rem 0 1.8rem;}
+p{color:var(--text-dim);}
+.lead-in{color:var(--text); font-size:1.02rem;}
+.kbd{font-family:var(--mono); background:var(--bg-panel); border:1px solid var(--line); border-bottom-width:2px; color:var(--text); padding:0.12rem 0.5rem; border-radius:4px; font-size:0.82rem; white-space:nowrap;}
+.transform-table{width:100%; border-collapse:collapse; margin:1.5rem 0 2rem; font-size:0.9rem;}
+.transform-table th, .transform-table td{text-align:left; padding:0.7rem 0.9rem; border-bottom:1px solid var(--line);}
+.transform-table th{font-family:var(--mono); color:var(--text-faint); font-weight:500; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;}
+.transform-table td{color:var(--text-dim);}
+.transform-table td:first-child{color:var(--text); font-weight:600;}
+.callout{background:var(--bg-raised); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:0 var(--radius) var(--radius) 0; padding:1.1rem 1.4rem; margin:1.6rem 0; font-size:0.92rem;}
+.callout strong{color:var(--accent); font-family:var(--mono); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:0.4rem;}
+.callout p{margin:0; color:var(--text);}
+.callout.warn{border-left-color:var(--axis-x);}
+.callout.warn strong{color:var(--axis-x);}
+.callout.good{border-left-color:var(--axis-y);}
+.callout.good strong{color:var(--axis-y);}
+.mod-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; margin:1.6rem 0;}
+@media (max-width:640px){ .mod-grid{grid-template-columns:1fr;} }
+.mod-card{background:var(--bg-raised); border:1px solid var(--line); border-radius:var(--radius); padding:1.3rem 1.4rem;}
+.mod-card h3{font-family:var(--display); font-size:1.05rem; margin:0 0 0.5rem;}
+.mod-card p{margin:0; font-size:0.9rem;}
+/* three-point lighting diagram */
+.light-diagram{display:flex; justify-content:center; margin:2rem 0;}
+.light-diagram svg{width:100%; max-width:420px; height:auto;}
+.steps{display:grid; gap:1rem; margin:1.8rem 0;}
+.step{display:grid; grid-template-columns:44px 1fr; gap:1.1rem; align-items:start; background:var(--bg-raised); border:1px solid var(--line); border-radius:var(--radius); padding:1.1rem 1.3rem;}
+.step-num{width:32px; height:32px; border-radius:50%; background:var(--bg-panel); border:1px solid var(--accent-dim); color:var(--accent); font-family:var(--mono); font-weight:700; font-size:0.9rem; display:flex; align-items:center; justify-content:center;}
+.step h4{margin:0 0 0.35rem; font-family:var(--body); font-weight:600; font-size:0.98rem; color:var(--text);}
+.step p{margin:0; font-size:0.9rem;}
+.step .why{margin-top:0.5rem; font-size:0.82rem; color:var(--text-faint); font-style:italic;}
+.trouble-grid{display:grid; gap:0.9rem; margin:1.6rem 0;}
+.trouble-item{display:grid; grid-template-columns:1fr 1fr; gap:1rem; background:var(--bg-raised); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;}
+@media (max-width:640px){ .trouble-item{grid-template-columns:1fr;} }
+.trouble-item .prob, .trouble-item .fix{padding:1rem 1.2rem;}
+.trouble-item .prob{border-right:1px solid var(--line); background:rgba(229,72,77,0.06);}
+@media (max-width:640px){ .trouble-item .prob{border-right:none; border-bottom:1px solid var(--line);} }
+.trouble-item .fix{background:rgba(76,159,76,0.06);}
+.trouble-item .tag{font-family:var(--mono); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:0.35rem;}
+.trouble-item .prob .tag{color:var(--axis-x);}
+.trouble-item .fix .tag{color:var(--axis-y);}
+.trouble-item p{margin:0; font-size:0.87rem; color:var(--text);}
+.roadmap{display:grid; gap:0.6rem; margin:1.8rem 0;}
+.rm-item{display:grid; grid-template-columns:44px 1fr auto; align-items:center; gap:1rem; padding:0.85rem 1.1rem; border:1px solid var(--line); border-radius:var(--radius); background:var(--bg-raised);}
+.rm-item.active{border-color:var(--accent); background:linear-gradient(90deg, rgba(239,125,34,0.1), transparent);}
+.rm-item.done{opacity:0.7;}
+.rm-num{font-family:var(--mono); color:var(--text-faint); font-size:0.95rem;}
+.rm-item.active .rm-num{color:var(--accent); font-weight:700;}
+.rm-title{font-weight:600; font-size:0.94rem;}
+.rm-item.active .rm-title{color:var(--text);}
+.rm-item:not(.active) .rm-title{color:var(--text-dim);}
+.rm-tag{font-family:var(--mono); font-size:0.7rem; color:var(--text-faint); border:1px solid var(--line); padding:0.2rem 0.55rem; border-radius:100px; white-space:nowrap;}
+.rm-item.active .rm-tag{color:var(--accent); border-color:var(--accent-dim);}
+.exercise{background:var(--bg-raised); border:1px solid var(--line); border-radius:var(--radius); padding:1.8rem 2rem; margin:1.8rem 0;}
+.exercise .ex-kicker{font-family:var(--mono); color:var(--accent); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.6rem;}
+.exercise h3{font-family:var(--display); margin:0 0 1rem; font-size:1.2rem;}
+.exercise ol{padding-left:1.3rem; margin:0; color:var(--text-dim);}
+.exercise li{margin-bottom:0.75rem; padding-left:0.2rem;}
+.exercise li::marker{font-family:var(--mono); color:var(--accent);}
+.foot-nav{padding:3.5rem 0 4rem; border-top:1px solid var(--line);}
+.foot-nav-inner{display:flex; justify-content:space-between; align-items:center; gap:1.5rem; flex-wrap:wrap;}
+.foot-prev, .foot-next{text-decoration:none; display:flex; flex-direction:column; gap:0.3rem;}
+.foot-next{align-items:flex-end;}
+.foot-prev .fn-label, .foot-next .fn-label{font-family:var(--mono); color:var(--text-faint); font-size:0.75rem; text-transform:uppercase;}
+.foot-prev .fn-title, .foot-next .fn-title{font-family:var(--display); color:var(--text); font-size:1.1rem; font-weight:600; display:flex; align-items:center; gap:0.5rem;}
+.foot-prev:hover .fn-title, .foot-next:hover .fn-title{color:var(--accent);}
+.foot-meta{text-align:center; color:var(--text-faint); font-size:0.78rem; margin-top:3rem; font-family:var(--mono);}
+</style>
+</head>
+<body>
+<div class="grid-bg" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a class="brand" href="#top"><span class="dot" aria-hidden="true"></span>Blender para Jogos <span class="eyebrow">· Site 8/9</span></a>
+  <nav class="topnav" aria-label="Navegação da página">
+    <a href="#motores">Motores de render</a>
+    <a href="#iluminacao">Iluminação</a>
+    <a href="#camera">Câmera</a>
+    <a href="#guia">Guia: hero shot do baú</a>
+    <a href="#problemas">Problemas comuns</a>
+  </nav>
+</header>
+
+<main class="wrap" id="top">
+
+  <section class="hero" style="border-top:none; padding-top:4.5rem;">
+    <p class="kicker">Planejamento e Produção de Elementos Multimídia de Jogos Digitais</p>
+    <h1>O baú ganha <em>uma foto de capa</em>.</h1>
+    <p class="lead">O pipeline de asset pronto para jogo terminou no Site 7. Esta etapa é diferente: em vez de preparar o baú para uma engine, vamos renderizar uma imagem de divulgação dele — o tipo de arte usada numa capa de Steam, num post de rede social, ou ao lado da Key Art feita no Photoshop.</p>
+    <div class="hero-meta">
+      <div class="item">Parte anterior<strong>Site 7 · Rigging e Animação</strong></div>
+      <div class="item">Arquivo de partida<strong>bau_v06_rig.blend</strong></div>
+      <div class="item">Você vai sair com<strong>bau_render_final.png</strong></div>
+      <div class="item">Próxima etapa<strong>Site 9 · Impressão 3D</strong></div>
+    </div>
+  </section>
+
+  <section id="motores">
+    <div class="sec-head"><span class="sec-num">01</span><h2>Dois motores, dois propósitos</h2></div>
+    <p class="lead-in">O Blender inclui dois motores de renderização com filosofias opostas — e a escolha entre eles é a primeira decisão de qualquer render.</p>
+    <div class="mod-grid">
+      <div class="mod-card">
+        <h3>EEVEE</h3>
+        <p>Motor em tempo real (rasterização), o mesmo tipo de tecnologia usada por engines de jogo. Renderiza em segundos, ótimo para iterar rápido e para pré-visualizar iluminação.</p>
+      </div>
+      <div class="mod-card">
+        <h3>Cycles</h3>
+        <p>Motor de path tracing (simula o caminho físico da luz). Muito mais realista — reflexos, sombras suaves e iluminação indireta corretos — mas leva minutos em vez de segundos.</p>
+      </div>
+    </div>
+    <div class="callout">
+      <strong>Qual usar no hero shot do baú</strong>
+      <p>Use EEVEE para posicionar luzes e câmera rapidamente, e troque para Cycles apenas no render final — o mesmo fluxo usado profissionalmente: iterar rápido, renderizar devagar só uma vez, no final.</p>
+    </div>
+  </section>
+
+  <section id="iluminacao">
+    <div class="sec-head"><span class="sec-num">02</span><h2>Iluminação de três pontos</h2></div>
+    <p class="lead-in">O esquema mais clássico de iluminação — usado em fotografia, cinema e renders de produto — usa três luzes com papéis diferentes:</p>
+
+    <div class="light-diagram">
+      <svg viewBox="0 0 300 220" aria-hidden="true">
+        <g fill="none" stroke="var(--line)" stroke-width="1">
+          <circle cx="150" cy="140" r="60" stroke-dasharray="3,3"/>
+        </g>
+        <rect x="130" y="120" width="40" height="40" fill="none" stroke="var(--accent)" stroke-width="2"/>
+        <circle cx="60" cy="60" r="12" fill="var(--axis-z)"/>
+        <line x1="60" y1="60" x2="140" y2="130" stroke="var(--axis-z)" stroke-width="1" stroke-dasharray="2,2"/>
+        <text x="30" y="45" font-family="JetBrains Mono" font-size="11" fill="var(--axis-z)">Key</text>
+        <circle cx="240" cy="90" r="10" fill="var(--axis-y)"/>
+        <line x1="240" y1="90" x2="165" y2="135" stroke="var(--axis-y)" stroke-width="1" stroke-dasharray="2,2"/>
+        <text x="235" y="75" font-family="JetBrains Mono" font-size="11" fill="var(--axis-y)">Fill</text>
+        <circle cx="150" cy="195" r="9" fill="var(--axis-x)"/>
+        <line x1="150" y1="195" x2="150" y2="160" stroke="var(--axis-x)" stroke-width="1" stroke-dasharray="2,2"/>
+        <text x="160" y="210" font-family="JetBrains Mono" font-size="11" fill="var(--axis-x)">Rim</text>
+      </svg>
+    </div>
+
+    <table class="transform-table">
+      <thead><tr><th>Luz</th><th>Posição</th><th>Função</th></tr></thead>
+      <tbody>
+        <tr><td>Key Light</td><td>45° à frente, mais forte</td><td>Luz principal, define volume e sombra dominante</td></tr>
+        <tr><td>Fill Light</td><td>Lado oposto à Key, mais fraca</td><td>Suaviza as sombras que a Key cria, sem apagá-las</td></tr>
+        <tr><td>Rim Light</td><td>Atrás do objeto</td><td>Contorno de luz que separa o baú do fundo</td></tr>
+      </tbody>
+    </table>
+    <p>No Blender, adicione cada uma com <span class="kbd">Shift+A</span> → Light → Area (boa opção versátil para as três). Ajuste a intensidade (Power) e o tamanho (Size) de cada uma no painel de propriedades da luz.</p>
+  </section>
+
+  <section id="camera">
+    <div class="sec-head"><span class="sec-num">03</span><h2>Câmera: enquadramento e profundidade de campo</h2></div>
+    <table class="transform-table">
+      <thead><tr><th>Conceito</th><th>O que faz</th></tr></thead>
+      <tbody>
+        <tr><td>Distância focal</td><td>50-85mm produz uma perspectiva "natural", sem distorcer as proporções do baú (valores baixos, tipo 18mm, exageram a perspectiva)</td></tr>
+        <tr><td>Regra dos terços</td><td>Posicione o baú fora do centro exato do quadro para uma composição mais dinâmica</td></tr>
+        <tr><td>Profundidade de campo (DOF)</td><td>Desfoca o fundo, mantendo o baú em foco nítido — ativa em Camera Data → Depth of Field</td></tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      <strong>Atalho de enquadramento</strong>
+      <p>Com a câmera selecionada, <span class="kbd">Ctrl+Numpad 0</span> alinha a vista atual do viewport à câmera — é mais fácil compor movendo a view livremente e depois "prendendo" a câmera nessa posição do que ajustando a câmera diretamente.</p>
+    </div>
+  </section>
+
+  <section id="guia">
+    <div class="sec-head"><span class="sec-num">04</span><h2>Guia passo a passo — o hero shot do baú</h2></div>
+    <p class="sec-sub">Continue a partir de <span class="kbd">bau_v06_rig.blend</span> do Site 7.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>
+          <h4>Pose a tampa entreaberta</h4>
+          <p>Use o rig do Site 7 em Pose Mode para deixar a tampa numa posição intermediária, sugerindo movimento e revelando o interior do baú.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>
+          <h4>Posicione as três luzes</h4>
+          <p>Adicione Key, Fill e Rim conforme a seção 02, testando a intensidade em EEVEE (Z → Rendered no viewport, para ver o resultado em tempo real).</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>
+          <h4>Componha a câmera</h4>
+          <p>Adicione uma câmera (<span class="kbd">Shift+A</span> → Camera), ajuste a distância focal para ~50mm e enquadre o baú levemente de cima, seguindo a regra dos terços.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div>
+          <h4>Adicione um fundo simples</h4>
+          <p>Um plano curvo (cyclorama) atrás e abaixo do baú, com um material neutro escuro, evita uma linha de horizonte distraindo a composição.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div>
+          <h4>Troque para Cycles e ajuste samples</h4>
+          <p>Properties → Render → Cycles. Aumente Samples (comece em 128) até o ruído (grain) desaparecer no preview.</p>
+          <p class="why">Por quê: Cycles simula luz de verdade, incluindo os reflexos entre a madeira e o metal do baú — resultado que o EEVEE só aproxima.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div>
+          <h4>Renderize e exporte</h4>
+          <p><span class="kbd">F12</span> para renderizar, depois Image → Save As → PNG, com canal Alpha ativado se for compor sobre outro fundo depois (por exemplo, no Photoshop).</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="problemas">
+    <div class="sec-head"><span class="sec-num">05</span><h2>Problemas comuns e como resolver</h2></div>
+    <div class="trouble-grid">
+      <div class="trouble-item">
+        <div class="prob"><span class="tag">Problema</span><p>O render final está granulado/ruidoso.</p></div>
+        <div class="fix"><span class="tag">Causa provável</span><p>Poucos samples no Cycles. Aumente o valor em Render Properties → Sampling, ou ative o Denoiser (Render Properties → Denoise).</p></div>
+      </div>
+      <div class="trouble-item">
+        <div class="prob"><span class="tag">Problema</span><p>Sombras muito duras e escuras.</p></div>
+        <div class="fix"><span class="tag">Causa provável</span><p>A Fill Light está fraca ou ausente — aumente sua intensidade ou o tamanho (Size) da luz para uma sombra mais suave.</p></div>
+      </div>
+      <div class="trouble-item">
+        <div class="prob"><span class="tag">Problema</span><p>O objeto parece "achatado", sem profundidade.</p></div>
+        <div class="fix"><span class="tag">Causa provável</span><p>Falta a Rim Light, ou a câmera está de frente demais — um ângulo levemente lateral ajuda a mostrar volume.</p></div>
+      </div>
+      <div class="trouble-item">
+        <div class="prob"><span class="tag">Problema</span><p>O render demora demais para concluir.</p></div>
+        <div class="fix"><span class="tag">Causa provável</span><p>Resolução ou samples muito altos para uma prévia. Renderize em resolução menor (50%) enquanto ajusta composição, e só suba a resolução no render final.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="roteiro">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Onde estamos na série</h2></div>
+    <div class="roadmap">
+      <div class="rm-item done"><span class="rm-num">01</span><span class="rm-title">Fundamentos do Blender</span><span class="rm-tag">concluído</span></div>
+      <div class="rm-item done"><span class="rm-num">02</span><span class="rm-title">Modelagem (Poly Modeling)</span><span class="rm-tag">concluído</span></div>
+      <div class="rm-item done"><span class="rm-num">03</span><span class="rm-title">UV Unwrapping</span><span class="rm-tag">concluído</span></div>
+      <div class="rm-item done"><span class="rm-num">04</span><span class="rm-title">Materiais e Shading (PBR)</span><span class="rm-tag">concluído</span></div>
+      <div class="rm-item done"><span class="rm-num">05</span><span class="rm-title">Otimização para game-ready assets</span><span class="rm-tag">concluído</span></div>
+      <div class="rm-item done"><span class="rm-num">06</span><span class="rm-title">Exportação e integração com engines</span><span class="rm-tag">concluído</span></div>
+      <div class="rm-item done"><span class="rm-num">07</span><span class="rm-title">Rigging e Animação básica</span><span class="rm-tag">concluído</span></div>
+      <div class="rm-item active"><span class="rm-num">08</span><span class="rm-title">Renderização 3D</span><span class="rm-tag">você está aqui</span></div>
+      <div class="rm-item"><span class="rm-num">09</span><span class="rm-title">Modelagem para Impressão 3D</span><span class="rm-tag">em breve</span></div>
+    </div>
+  </section>
+
+  <section id="exercicio">
+    <div class="sec-head"><span class="sec-num">07</span><h2>Fechando esta etapa</h2></div>
+    <div class="exercise">
+      <div class="ex-kicker">Antes de seguir para o Site 9</div>
+      <h3>Confira e salve o render final</h3>
+      <ol>
+        <li>Confirme que as três luzes (Key, Fill, Rim) estão contribuindo visivelmente para a composição — desligue cada uma por vez para conferir.</li>
+        <li>Renderize em Cycles com denoiser ativado, em pelo menos 1920×1080.</li>
+        <li>Exporte como <strong style="color:var(--text)">bau_render_final.png</strong> — essa imagem pode acompanhar a Key Art feita no Photoshop como material de divulgação do projeto.</li>
+        <li>Salve também o arquivo <strong style="color:var(--text)">bau_v07_render.blend</strong>, preservando luzes e câmera para ajustes futuros.</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot-nav">
+  <div class="wrap foot-nav-inner">
+    <a class="foot-prev" href="../Blender07/index.html">
+      <span class="fn-label">← Anterior · Site 7 de 9</span>
+      <span class="fn-title">Rigging e Animação básica</span>
+    </a>
+    <a class="foot-next" href="../Blender09/index.html">
+      <span class="fn-label">Próximo · Site 9 de 9</span>
+      <span class="fn-title">Modelagem para Impressão 3D →</span>
+    </a>
+  </div>
+  <p class="wrap foot-meta">Planejamento e Produção de Elementos Multimídia de Jogos Digitais · Blender para Jogos · Site 8: Renderização 3D</p>
+</footer>
+
+</body>
+</html>
