@@ -128,7 +128,7 @@ p{color:var(--text-dim);}
     <a href="#camera">Câmera</a>
     <a href="#guia">Guia: hero shot do baú</a>
     <a href="#problemas">Problemas comuns</a>
-      <a href="#cycles">Aprofundando</a>
+      <a href="#cycles">Cycles e cor</a>
     <a href="#recursos">Para aprofundar</a>
   </nav>
 </header>
@@ -288,7 +288,7 @@ p{color:var(--text-dim);}
   </section>
 
     <section id="cycles">
-    <div class="sec-head"><span class="sec-num">06</span><h2>Aprofundando: Cycles por dentro</h2></div>
+    <div class="sec-head"><span class="sec-num">06</span><h2>Cycles por dentro</h2></div>
     <p class="lead-in">No guia, você aumentou os Samples até o ruído sumir. Aqui está o porquê de cada controle, para você parar de adivinhar e começar a decidir.</p>
     <p>O Cycles funciona por tentativa e média: para cada pixel, ele lança raios de luz aleatórios e calcula a média dos resultados. Poucas amostras significam média ruim, e o resultado é o grão (ruído). Mais amostras reduzem o grão, mas o ganho diminui rápido: dobrar as amostras não corta o ruído pela metade, e o tempo de render dobra.</p>
     <div class="tbl"><table class="transform-table">
@@ -326,7 +326,7 @@ p{color:var(--text-dim);}
   </section>
 
   <section id="cor">
-    <div class="sec-head"><span class="sec-num">07</span><h2>Aprofundando: gestão de cor</h2></div>
+    <div class="sec-head"><span class="sec-num">07</span><h2>Gestão de cor</h2></div>
     <p class="lead-in">Já aconteceu de o render sair lavado, sem contraste, ou com as áreas claras totalmente estouradas? Quase sempre a causa é a conversão de cor da imagem, não a luz.</p>
     <p>O Blender calcula a luz em valores lineares que podem passar muito de 1,0 (uma lâmpada é milhares de vezes mais clara que uma parede). Uma tela só mostra do preto ao branco, então algo precisa comprimir essa faixa enorme para a imagem final. Esse algoritmo é a <strong style="color:var(--text)">View Transform</strong>, em Render Properties → Color Management.</p>
     <div class="tbl"><table class="transform-table">
@@ -355,7 +355,7 @@ p{color:var(--text-dim);}
   </section>
 
   <section id="estudio">
-    <div class="sec-head"><span class="sec-num">08</span><h2>Aprofundando: luz de estúdio e HDRI</h2></div>
+    <div class="sec-head"><span class="sec-num">08</span><h2>Luz de estúdio e HDRI</h2></div>
     <p class="lead-in">A iluminação de três pontos é um ponto de partida. Quem controla uma luz pensa em cinco perguntas: de onde ela vem, quão grande ela é, que cor tem, quanto separa o objeto do fundo e para onde ela leva o olhar.</p>
     <div class="mod-grid">
       <div class="mod-card"><h3>Direção</h3><p>Uma luz vinda de cima e de lado cria volume. Vinda de baixo, dá aspecto sinistro. De frente, achata. Mova a Key antes de mexer em qualquer outra coisa.</p></div>
@@ -390,7 +390,7 @@ p{color:var(--text-dim);}
   </section>
 
   <section id="camera2">
-    <div class="sec-head"><span class="sec-num">09</span><h2>Aprofundando: câmera, formatos e turntable</h2></div>
+    <div class="sec-head"><span class="sec-num">09</span><h2>Câmera, formatos e turntable</h2></div>
     <p class="lead-in">Uma boa câmera e um bom formato valem tanto quanto uma boa luz, e o turntable (a peça girando) é a vitrine mais usada para assets.</p>
     <div class="tbl"><table class="transform-table">
       <thead><tr><th>Controle</th><th>Onde</th><th>Efeito</th></tr></thead>
@@ -415,7 +415,7 @@ p{color:var(--text-dim);}
   </section>
 
   <section id="pos">
-    <div class="sec-head"><span class="sec-num">10</span><h2>Aprofundando: compositor e entrega</h2></div>
+    <div class="sec-head"><span class="sec-num">10</span><h2>Compositor e entrega</h2></div>
     <p class="lead-in">O render bruto raramente é a imagem final. O Blender tem um compositor de nós (workspace <em>Compositing</em>) que faz os acabamentos sem sair do programa.</p>
     <div class="mod-grid">
       <div class="mod-card"><h3>Glare</h3><p>Cria o brilho (bloom) em torno de luzes e superfícies muito claras. No EEVEE atual o bloom antigo foi removido; o efeito agora é feito por este nó.</p></div>
