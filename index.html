@@ -110,6 +110,11 @@ p{color:var(--text-dim);}
 .foot-prev .fn-title, .foot-next .fn-title{font-family:var(--display); color:var(--text); font-size:1.1rem; font-weight:600; display:flex; align-items:center; gap:0.5rem;}
 .foot-prev:hover .fn-title, .foot-next:hover .fn-title{color:var(--accent);}
 .foot-meta{text-align:center; color:var(--text-faint); font-size:0.78rem; margin-top:3rem; font-family:var(--mono);}
+
+.ext{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-dim);}
+.ext:hover{color:var(--text);}
+.tbl{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+@media (max-width:640px){ .tbl .transform-table{min-width:600px;} }
 </style>
 </head>
 <body>
@@ -123,6 +128,8 @@ p{color:var(--text-dim);}
     <a href="#camera">Câmera</a>
     <a href="#guia">Guia: hero shot do baú</a>
     <a href="#problemas">Problemas comuns</a>
+      <a href="#cycles">Aprofundando</a>
+    <a href="#recursos">Para aprofundar</a>
   </nav>
 </header>
 
@@ -181,27 +188,27 @@ p{color:var(--text-dim);}
       </svg>
     </div>
 
-    <table class="transform-table">
+    <div class="tbl"><table class="transform-table">
       <thead><tr><th>Luz</th><th>Posição</th><th>Função</th></tr></thead>
       <tbody>
         <tr><td>Key Light</td><td>45° à frente, mais forte</td><td>Luz principal, define volume e sombra dominante</td></tr>
         <tr><td>Fill Light</td><td>Lado oposto à Key, mais fraca</td><td>Suaviza as sombras que a Key cria, sem apagá-las</td></tr>
         <tr><td>Rim Light</td><td>Atrás do objeto</td><td>Contorno de luz que separa o baú do fundo</td></tr>
       </tbody>
-    </table>
+    </table></div>
     <p>No Blender, adicione cada uma com <span class="kbd">Shift+A</span> → Light → Area (boa opção versátil para as três). Ajuste a intensidade (Power) e o tamanho (Size) de cada uma no painel de propriedades da luz.</p>
   </section>
 
   <section id="camera">
     <div class="sec-head"><span class="sec-num">03</span><h2>Câmera: enquadramento e profundidade de campo</h2></div>
-    <table class="transform-table">
+    <div class="tbl"><table class="transform-table">
       <thead><tr><th>Conceito</th><th>O que faz</th></tr></thead>
       <tbody>
         <tr><td>Distância focal</td><td>50-85mm produz uma perspectiva "natural", sem distorcer as proporções do baú (valores baixos, tipo 18mm, exageram a perspectiva)</td></tr>
         <tr><td>Regra dos terços</td><td>Posicione o baú fora do centro exato do quadro para uma composição mais dinâmica</td></tr>
         <tr><td>Profundidade de campo (DOF)</td><td>Desfoca o fundo, mantendo o baú em foco nítido — ativa em Camera Data → Depth of Field</td></tr>
       </tbody>
-    </table>
+    </table></div>
     <div class="callout">
       <strong>Atalho de enquadramento</strong>
       <p>Com a câmera selecionada, <span class="kbd">Ctrl+Numpad 0</span> alinha a vista atual do viewport à câmera — é mais fácil compor movendo a view livremente e depois "prendendo" a câmera nessa posição do que ajustando a câmera diretamente.</p>
@@ -280,8 +287,186 @@ p{color:var(--text-dim);}
     </div>
   </section>
 
-  <section id="roteiro">
-    <div class="sec-head"><span class="sec-num">06</span><h2>Onde estamos na série</h2></div>
+    <section id="cycles">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Aprofundando: Cycles por dentro</h2></div>
+    <p class="lead-in">No guia, você aumentou os Samples até o ruído sumir. Aqui está o porquê de cada controle, para você parar de adivinhar e começar a decidir.</p>
+    <p>O Cycles funciona por tentativa e média: para cada pixel, ele lança raios de luz aleatórios e calcula a média dos resultados. Poucas amostras significam média ruim, e o resultado é o grão (ruído). Mais amostras reduzem o grão, mas o ganho diminui rápido: dobrar as amostras não corta o ruído pela metade, e o tempo de render dobra.</p>
+    <div class="tbl"><table class="transform-table">
+      <thead><tr><th>Controle</th><th>Onde fica</th><th>O que faz</th><th>Ponto de partida</th></tr></thead>
+      <tbody>
+        <tr><td>Max Samples</td><td>Render → Sampling → Render</td><td>Teto de amostras por pixel. O render para antes se o Noise Threshold for atingido.</td><td>128 a 256 para peças simples</td></tr>
+        <tr><td>Noise Threshold</td><td>Render → Sampling → Render</td><td>Amostragem adaptativa: pixels já limpos deixam de receber amostras e o tempo é gasto onde há ruído. Valor menor significa imagem mais limpa.</td><td>0,01 (padrão de fábrica); 0,05 para provas</td></tr>
+        <tr><td>Denoise</td><td>Render → Sampling → Render → Denoise</td><td>Filtro que remove o grão restante. OpenImageDenoise roda em qualquer máquina; OptiX é mais rápido em placas NVIDIA.</td><td>Ligado, com OpenImageDenoise</td></tr>
+        <tr><td>Max Bounces</td><td>Render → Light Paths</td><td>Quantas vezes um raio pode ricochetear. Mais ricochetes dão luz indireta mais fiel e mais tempo de render.</td><td>4 a 8 para um objeto isolado</td></tr>
+        <tr><td>Clamping (Indirect)</td><td>Render → Light Paths → Clamping</td><td>Corta pixels isolados brilhantes demais, os fireflies, causados por superfícies muito reflexivas.</td><td>Comece em 10 e aumente só se o brilho sumir</td></tr>
+        <tr><td>Device</td><td>Render → Device</td><td>CPU ou GPU Compute. A GPU costuma ser bem mais rápida se a placa for compatível (ative em Edit → Preferences → System).</td><td>GPU, se houver</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout">
+      <strong>Denoise não é desculpa para poucas amostras</strong>
+      <p>O denoiser é treinado para limpar grão leve. Com 8 ou 16 amostras ele devolve uma imagem borrada, "de cera", que apaga o veio da madeira e o risco no metal. Regra prática: deixe a amostragem entregar uma imagem já reconhecível e use o denoise só para o acabamento.</p>
+    </div>
+    <div class="callout warn">
+      <strong>Fireflies (pontinhos brancos)</strong>
+      <p>Aparecem quando um raio improvável encontra uma luz muito forte, geralmente depois de refletir em metal polido ou vidro. Soluções, da mais barata para a mais cara: baixar o Clamping Indirect, aumentar levemente a rugosidade (Roughness) do material, reduzir a intensidade de luzes muito pequenas e, por último, aumentar as amostras.</p>
+    </div>
+    <div class="exercise">
+      <div class="ex-kicker">Laboratório 1</div>
+      <h3>A escada de amostras</h3>
+      <ol>
+        <li>Posicione a câmera no baú e renderize o mesmo quadro em Cycles com Max Samples em 16, 64, 128 e 512, sempre com o Denoise desligado. Anote o tempo de cada um (aparece na barra inferior da janela de render).</li>
+        <li>Repita o experimento com o Denoise ligado. Compare as imagens lado a lado ampliadas em 200%.</li>
+        <li>Monte uma tabela com amostras, tempo e sua nota para a qualidade (1 a 5) e responda: a partir de qual valor a diferença deixa de valer o tempo extra?</li>
+      </ol>
+    </div>
+    <div class="callout good">
+      <strong>EEVEE não é só o rascunho</strong>
+      <p>O EEVEE atual traz ray tracing opcional, sombras mais precisas e sondas de luz (Light Probes) que capturam a iluminação do ambiente para os reflexos. Para uma peça de vitrine simples, com poucos objetos, ele pode entregar uma imagem final de boa qualidade em segundos, e para animações longas, como um turntable, o ganho de tempo é enorme. A decisão é pelo resultado: se o reflexo ou a sombra preciso importa, use Cycles; se a velocidade importa mais, teste o EEVEE antes.</p>
+    </div>
+  </section>
+
+  <section id="cor">
+    <div class="sec-head"><span class="sec-num">07</span><h2>Aprofundando: gestão de cor</h2></div>
+    <p class="lead-in">Já aconteceu de o render sair lavado, sem contraste, ou com as áreas claras totalmente estouradas? Quase sempre a causa é a conversão de cor da imagem, não a luz.</p>
+    <p>O Blender calcula a luz em valores lineares que podem passar muito de 1,0 (uma lâmpada é milhares de vezes mais clara que uma parede). Uma tela só mostra do preto ao branco, então algo precisa comprimir essa faixa enorme para a imagem final. Esse algoritmo é a <strong style="color:var(--text)">View Transform</strong>, em Render Properties → Color Management.</p>
+    <div class="tbl"><table class="transform-table">
+      <thead><tr><th>View Transform</th><th>Comportamento</th><th>Quando usar</th></tr></thead>
+      <tbody>
+        <tr><td>Standard</td><td>Sem compressão: o que passa de 1,0 estoura para branco.</td><td>Arte 2D, texturas, UI. Raramente para renders 3D.</td></tr>
+        <tr><td>AgX</td><td>Compressão suave de luzes fortes, com transição natural para o branco. É o padrão atual do Blender.</td><td>Renders gerais, cenas com luzes fortes e muito contraste.</td></tr>
+        <tr><td>Khronos PBR Neutral</td><td>Preserva a cor do material com o mínimo de alteração, comprimindo só as áreas muito claras.</td><td>Vitrine de produto e de assets, quando a cor da textura deve aparecer fiel, como numa loja.</td></tr>
+        <tr><td>Filmic (legado)</td><td>Antecessor do AgX, ainda encontrado em tutoriais mais antigos.</td><td>Só para reproduzir um tutorial antigo.</td></tr>
+      </tbody>
+    </table></div>
+    <p>Dois ajustes finos ficam na mesma seção: <strong style="color:var(--text)">Exposure</strong>, que clareia ou escurece toda a imagem, e <strong style="color:var(--text)">Look</strong>, que aplica um contraste pronto. Antes de mexer na intensidade de todas as luzes, experimente o Exposure.</p>
+    <div class="callout warn">
+      <strong>A mesma imagem, cores diferentes</strong>
+      <p>Se você salvar o render e o PNG parecer diferente do que aparecia no viewport, compare a View Transform usada nos dois. E nunca compare cores do render com as do Photoshop sem conferir o perfil de cor do documento no Photoshop: perfis diferentes mudam a aparência sem que nenhum arquivo esteja "errado".</p>
+    </div>
+    <div class="exercise">
+      <div class="ex-kicker">Laboratório 2</div>
+      <h3>Três transformações, uma cena</h3>
+      <ol>
+        <li>Renderize o hero shot do baú com Standard, AgX e Khronos PBR Neutral, mantendo todo o resto igual.</li>
+        <li>Coloque as três imagens lado a lado e descreva, em uma frase cada, o que mudou nas áreas claras, nas sombras e na cor da madeira.</li>
+        <li>Escolha uma para o render final e justifique em uma linha, pensando em onde a imagem será publicada.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="estudio">
+    <div class="sec-head"><span class="sec-num">08</span><h2>Aprofundando: luz de estúdio e HDRI</h2></div>
+    <p class="lead-in">A iluminação de três pontos é um ponto de partida. Quem controla uma luz pensa em cinco perguntas: de onde ela vem, quão grande ela é, que cor tem, quanto separa o objeto do fundo e para onde ela leva o olhar.</p>
+    <div class="mod-grid">
+      <div class="mod-card"><h3>Direção</h3><p>Uma luz vinda de cima e de lado cria volume. Vinda de baixo, dá aspecto sinistro. De frente, achata. Mova a Key antes de mexer em qualquer outra coisa.</p></div>
+      <div class="mod-card"><h3>Tamanho</h3><p>Quanto maior a luz em relação ao objeto, mais suave a sombra. Uma Area Light de 0,3 m dá sombra dura; a mesma luz com 2 m dá sombra de estúdio de fotografia.</p></div>
+      <div class="mod-card"><h3>Cor</h3><p>Luzes quentes (amareladas) e frias (azuladas) criam clima. Um truque clássico: Key levemente quente e Rim fria, que separa o objeto do fundo pela cor.</p></div>
+      <div class="mod-card"><h3>Legibilidade e ênfase</h3><p>A luz mostra o que importa. Se o detalhe principal está na sombra, ou uma mancha brilhante rouba a atenção, a imagem falha mesmo com tudo "correto".</p></div>
+    </div>
+    <div class="callout">
+      <strong>Lei do inverso do quadrado</strong>
+      <p>Ao dobrar a distância entre uma luz e o objeto, a luz que chega cai para um quarto. Por isso afastar a Key do baú escurece o quadro muito mais do que parece, e aproximar uma luz pequena cria um ponto estourado. Ajuste a distância e a potência (Power) juntas.</p>
+    </div>
+    <h3 style="font-family:var(--display);margin:2rem 0 0.6rem;">HDRI: o estúdio em uma imagem</h3>
+    <p>Um HDRI é uma foto panorâmica de um ambiente real que guarda a intensidade da luz, não só a cor. Quando aplicado ao World, ele ilumina a cena de todos os lados e aparece nos reflexos, o que dá muito realismo a metal e vidro. Fontes gratuitas e de uso livre, como o Poly Haven, oferecem centenas.</p>
+    <div class="tbl"><table class="transform-table">
+      <thead><tr><th>Passo</th><th>Como fazer</th></tr></thead>
+      <tbody>
+        <tr><td>1. Aplicar o HDRI</td><td>Properties → World → Surface → Color → <span class="kbd">Environment Texture</span> e escolha o arquivo .hdr ou .exr baixado.</td></tr>
+        <tr><td>2. Girar o ambiente</td><td>No Shader Editor do World, acrescente <span class="kbd">Texture Coordinate</span> → <span class="kbd">Mapping</span> antes da textura e gire o eixo Z para encontrar a melhor direção de luz.</td></tr>
+        <tr><td>3. Ajustar a intensidade</td><td>Aumente ou reduza o <em>Strength</em> do nó Background. Combine HDRI fraco com as luzes de estúdio para ter controle da forma.</td></tr>
+        <tr><td>4. Esconder o fundo</td><td>Em Render → Film, ative <em>Transparent</em> para que o HDRI ilumine e reflita sem aparecer atrás do baú. O PNG sai com transparência.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="exercise">
+      <div class="ex-kicker">Laboratório 3</div>
+      <h3>Três luzes ou um HDRI?</h3>
+      <ol>
+        <li>Renderize o baú somente com o esquema de três pontos. Depois apague as luzes e renderize só com um HDRI de estúdio ou de céu aberto.</li>
+        <li>Combine os dois: HDRI com Strength baixo e uma Rim Light forte. Anote o que cada combinação fez com os reflexos nas partes de metal.</li>
+        <li>Responda: qual esquema você usaria para uma capa de loja? E qual para um asset de catálogo, com fundo transparente?</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="camera2">
+    <div class="sec-head"><span class="sec-num">09</span><h2>Aprofundando: câmera, formatos e turntable</h2></div>
+    <p class="lead-in">Uma boa câmera e um bom formato valem tanto quanto uma boa luz, e o turntable (a peça girando) é a vitrine mais usada para assets.</p>
+    <div class="tbl"><table class="transform-table">
+      <thead><tr><th>Controle</th><th>Onde</th><th>Efeito</th></tr></thead>
+      <tbody>
+        <tr><td>Focal Length</td><td>Camera Data → Lens</td><td>Valores altos (85 mm) achatam a perspectiva e favorecem produto; valores baixos (24 mm) exageram a profundidade, bons para cenários.</td></tr>
+        <tr><td>Depth of Field</td><td>Camera Data → Depth of Field</td><td>Ative e escolha o baú em <em>Focus Object</em>, assim o foco acompanha o objeto. O <em>F-Stop</em> baixo (1,8) desfoca muito o fundo; alto (11) mantém tudo nítido.</td></tr>
+        <tr><td>Composition Guides</td><td>Camera Data → Viewport Display</td><td>Mostra a regra dos terços, a diagonal e a proporção áurea sobre a câmera enquanto você compõe.</td></tr>
+        <tr><td>Resolução</td><td>Output Properties → Format</td><td>1920×1080 (vídeo/capa 16:9), 1080×1080 (post quadrado), 1080×1920 (vertical). Defina antes de compor, porque o enquadramento muda com a proporção.</td></tr>
+      </tbody>
+    </table></div>
+    <h3 style="font-family:var(--display);margin:2rem 0 0.6rem;">Turntable de 5 segundos</h3>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div><h4>Crie o eixo de giro</h4><p>Adicione um <span class="kbd">Empty</span> (Shift+A → Empty → Plain Axes) no centro do baú, na base. Faça o baú filho do Empty (selecione o baú, depois o Empty e <span class="kbd">Ctrl+P</span> → Object).</p></div></div>
+      <div class="step"><div class="step-num">2</div><div><h4>Defina a duração</h4><p>Em Output Properties, deixe 24 fps e vá de 1 a 120 (120 quadros ÷ 24 fps = 5 s). Com o Empty selecionado, no quadro 1, insira um keyframe de rotação (<span class="kbd">I</span>).</p></div></div>
+      <div class="step"><div class="step-num">3</div><div><h4>Gire 360° e deixe linear</h4><p>No quadro 121 (o primeiro quadro depois da volta), ajuste a rotação Z para 360° e insira outro keyframe. Para evitar aceleração e freio, selecione os keyframes no Dope Sheet ou no Graph Editor e escolha <em>Key → Interpolation Mode → Linear</em>.</p></div></div>
+      <div class="step"><div class="step-num">4</div><div><h4>Renderize como vídeo</h4><p>Em Output → File Format, escolha <em>FFmpeg Video</em> com contêiner MPEG-4 e codec H.264. Renderize com <span class="kbd">Ctrl+F12</span>. Se der problema, renderize uma sequência de PNG e deixe um editor de vídeo montar.</p></div></div>
+    </div>
+    <div class="callout warn">
+      <strong>Seu turntable "trava" no fim?</strong>
+      <p>Isso acontece quando os quadros 1 e 121 são idênticos e os dois aparecem no vídeo, o que repete a pose duas vezes. Faça a animação terminar no quadro 121 mas renderize só até o 120. A volta fecha sem pausa.</p>
+    </div>
+  </section>
+
+  <section id="pos">
+    <div class="sec-head"><span class="sec-num">10</span><h2>Aprofundando: compositor e entrega</h2></div>
+    <p class="lead-in">O render bruto raramente é a imagem final. O Blender tem um compositor de nós (workspace <em>Compositing</em>) que faz os acabamentos sem sair do programa.</p>
+    <div class="mod-grid">
+      <div class="mod-card"><h3>Glare</h3><p>Cria o brilho (bloom) em torno de luzes e superfícies muito claras. No EEVEE atual o bloom antigo foi removido; o efeito agora é feito por este nó.</p></div>
+      <div class="mod-card"><h3>Denoise</h3><p>Um nó de denoise permite limpar o grão por fora do render, para não precisar renderizar de novo se você ficar com dúvida.</p></div>
+      <div class="mod-card"><h3>Color Balance e Curvas</h3><p>Ajustam sombras, meios-tons e luzes. São o equivalente aos "Níveis" e "Curvas" do Photoshop.</p></div>
+      <div class="mod-card"><h3>Render Passes</h3><p>Salvam camadas separadas (profundidade, oclusão ambiente, luz difusa) para retocar no Photoshop sem refazer o render.</p></div>
+    </div>
+    <h3 style="font-family:var(--display);margin:2rem 0 0.6rem;">Checklist antes de entregar</h3>
+    <div class="exercise">
+      <div class="ex-kicker">Entrega de render</div>
+      <h3>Dez perguntas para o seu render final</h3>
+      <ol>
+        <li>A resolução e a proporção batem com o uso da imagem?</li>
+        <li>O olhar vai direto para o ponto principal, ou algo mais forte chama a atenção?</li>
+        <li>Há sombras totalmente pretas escondendo detalhes? Se sim, aumente a Fill ou o Exposure.</li>
+        <li>Há áreas brancas estouradas? Reduza luzes ou mude a View Transform.</li>
+        <li>Há fireflies ou grão visível quando a imagem é ampliada em 100%?</li>
+        <li>As cores do material estão fiéis à textura?</li>
+        <li>O fundo ajuda ou distrai? Precisa de transparência (Film → Transparent)?</li>
+        <li>O arquivo está salvo em PNG (ou PNG 16 bits, se for retocar), com nome claro e versão?</li>
+        <li>O .blend com luzes e câmera foi salvo para ajustes futuros?</li>
+        <li>Anotei o tempo de render e as configurações usadas, para repetir o resultado?</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="recursos">
+    <div class="sec-head"><span class="sec-num">11</span><h2>Para aprofundar: documentação, vídeos e cursos</h2></div>
+    <p class="lead-in">Material complementar para quem quiser ir além da aula. Os itens foram escolhidos por serem de fontes oficiais ou de criadores reconhecidos. Os cursos pagos estão marcados.</p>
+    <div class="tbl"><table class="transform-table">
+      <thead><tr><th>Tipo</th><th>Recurso</th><th>Idioma · formato</th><th>Para quê</th></tr></thead>
+      <tbody>
+        <tr><td>Documentação</td><td><a class="ext" href="https://docs.blender.org/manual/en/latest/render/cycles/index.html" target="_blank" rel="noopener">Manual do Blender · Cycles</a></td><td>Inglês · referência</td><td>Todos os controles de amostragem, Light Paths e denoise, na versão mais recente.</td></tr>
+        <tr><td>Documentação</td><td><a class="ext" href="https://docs.blender.org/manual/en/latest/render/eevee/index.html" target="_blank" rel="noopener">Manual do Blender · EEVEE</a></td><td>Inglês · referência</td><td>Ray tracing, sombras e light probes do EEVEE.</td></tr>
+        <tr><td>Documentação</td><td><a class="ext" href="https://docs.blender.org/manual/en/latest/render/color_management.html" target="_blank" rel="noopener">Manual do Blender · Color Management</a></td><td>Inglês · referência</td><td>View Transform, Look, Exposure e perfis de cor.</td></tr>
+        <tr><td>Documentação</td><td><a class="ext" href="https://docs.blender.org/manual/pt/4.0/render/lights/index.html" target="_blank" rel="noopener">Manual do Blender · Luzes (em português)</a></td><td>Português · referência (versão 4.0)</td><td>Tipos de luz e parâmetros em português. A interface mudou pouco; confira os nomes na sua versão.</td></tr>
+        <tr><td>Vídeo (gratuito)</td><td><a class="ext" href="https://www.blenderguru.com/tutorials/2019/lighting-mastery" target="_blank" rel="noopener">Lighting Mastery · Andrew Price (Blender Guru)</a></td><td>Inglês · 5 partes no YouTube</td><td>Direção, tamanho, cor, legibilidade e ênfase da luz. Base das cinco perguntas desta página.</td></tr>
+        <tr><td>Vídeo (gratuito)</td><td><a class="ext" href="https://studio.blender.org/training/blender-2-8-fundamentals/three-point-lighting" target="_blank" rel="noopener">Three Point Lighting · Mike Newbon (Blender Studio)</a></td><td>Inglês · aula curta</td><td>A iluminação de três pontos explicada pelo estúdio oficial. A interface é da versão 2.8, mas o conceito não mudou.</td></tr>
+        <tr><td>Curso (gratuito)</td><td><a class="ext" href="https://www.blendernation.com/2026/03/17/free-blender-5-1-beginner-course-in-brazilian-portuguese-4-hours/" target="_blank" rel="noopener">Curso de Blender 5.1 · Allan Brito</a></td><td>Português do Brasil · cerca de 4 h, YouTube</td><td>Revisão geral que inclui câmera, luz e render com EEVEE e Cycles.</td></tr>
+        <tr><td>Curso (pago)</td><td><a class="ext" href="https://www.skillshare.com/en/classes/blender-lighting-and-compositing-for-beginners/1473324758" target="_blank" rel="noopener">Blender Lighting &amp; Compositing for Beginners · 3D Tudor</a></td><td>Inglês · Skillshare</td><td>Iluminação e compositor em um curso estruturado.</td></tr>
+        <tr><td>Recurso</td><td><a class="ext" href="https://polyhaven.com/hdris" target="_blank" rel="noopener">Poly Haven · HDRIs</a></td><td>Download gratuito, licença CC0</td><td>HDRIs de estúdio, interior e céu para iluminar o seu render.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout">
+      <strong>Como usar estes links</strong>
+      <p>Não tente assistir a tudo. Escolha um recurso por laboratório: faça o experimento primeiro e abra o vídeo ou a documentação para entender o que você viu. Registre no seu relatório o que aprendeu e de onde veio.</p>
+    </div>
+  </section>
+
+<section id="roteiro">
+    <div class="sec-head"><span class="sec-num">12</span><h2>Onde estamos na série</h2></div>
     <div class="roadmap">
       <div class="rm-item done"><span class="rm-num">01</span><span class="rm-title">Fundamentos do Blender</span><span class="rm-tag">concluído</span></div>
       <div class="rm-item done"><span class="rm-num">02</span><span class="rm-title">Modelagem (Poly Modeling)</span><span class="rm-tag">concluído</span></div>
@@ -291,12 +476,12 @@ p{color:var(--text-dim);}
       <div class="rm-item done"><span class="rm-num">06</span><span class="rm-title">Exportação e integração com engines</span><span class="rm-tag">concluído</span></div>
       <div class="rm-item done"><span class="rm-num">07</span><span class="rm-title">Rigging e Animação básica</span><span class="rm-tag">concluído</span></div>
       <div class="rm-item active"><span class="rm-num">08</span><span class="rm-title">Renderização 3D</span><span class="rm-tag">você está aqui</span></div>
-      <div class="rm-item"><span class="rm-num">09</span><span class="rm-title">Modelagem para Impressão 3D</span><span class="rm-tag">em breve</span></div>
+      <div class="rm-item"><span class="rm-num">09</span><span class="rm-title">Modelagem para Impressão 3D</span><span class="rm-tag">próximo</span></div>
     </div>
   </section>
 
   <section id="exercicio">
-    <div class="sec-head"><span class="sec-num">07</span><h2>Fechando esta etapa</h2></div>
+    <div class="sec-head"><span class="sec-num">13</span><h2>Fechando esta etapa</h2></div>
     <div class="exercise">
       <div class="ex-kicker">Antes de seguir para o Site 9</div>
       <h3>Confira e salve o render final</h3>
